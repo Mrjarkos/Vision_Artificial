@@ -17,8 +17,8 @@ class Ui(QtWidgets.QMainWindow):
 
     def botonpresionado(self):
         print('Se presionó el boton pushButton')
-        app = QtWidgets.QDialog()
-        ex = BrowseFile()
+        self.ex = BrowseFile()
+        print(f'Nombre: {self.ex.fileName}')
         self.lbl.setText("Hola Mundo")
 
 
