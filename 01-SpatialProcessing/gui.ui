@@ -169,7 +169,7 @@ color: rgb(255, 255, 255);</string>
       <x>210</x>
       <y>380</y>
       <width>351</width>
-      <height>171</height>
+      <height>131</height>
      </rect>
     </property>
     <property name="styleSheet">
@@ -267,19 +267,6 @@ color: rgb(0, 255, 255);</string>
      </property>
      <property name="text">
       <string>Gamma</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="Apply_Brillo_Contraste">
-     <property name="geometry">
-      <rect>
-       <x>230</x>
-       <y>120</y>
-       <width>81</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Apply</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_6">

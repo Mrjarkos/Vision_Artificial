@@ -31,8 +31,10 @@ def gauss_filter(img, N, s):
 
 def sobel_filter(image):
     if len(image.shape)==2:
+        
         gx = cv2.Sobel(image, cv2.CV_64F, 1, 0)
         gy = cv2.Sobel(image, cv2.CV_64F, 0, 1)
+        
     else:
         #cv2.Sobel(imagen, 32 bits flotante, derivada en x, derivada en y)
         gx = cv2.Sobel(image[:,:,0], cv2.CV_64F, 1, 0)
@@ -109,7 +111,12 @@ def R_Degrade(image):
     pattern = np.flip(pattern)
     if len(image.shape)!=2:
         pattern=np.transpose(np.array([pattern,pattern,pattern]))
-    return np.uint8(np.clip(pattern*image, dmin, dmax-1))
+    while True:
+        try:
+            return np.uint8(np.clip(pattern*image, dmin, dmax-1))
+            break
+        except:
+            return np.uint8(np.clip(np.transpose(pattern)*image, dmin, dmax-1))
 
 class Dialogo(QtWidgets.QDialog):
     def __init__(self):
@@ -131,38 +138,49 @@ class ejemplo(QtWidgets.QMainWindow):
         #uic.loadUi('gui.ui',self)
         self.img = None
         self.img_anterior = None
+
         self.OpenImageButton.clicked.connect(self.Open_Image)
+
         self.GrayScaleButton.clicked.connect(self.Convert2Gray)
+
         self.Equalize_Button.clicked.connect(self.Equalize)
+
         self.ComboBoxFiltro.addItem("Average")
         self.ComboBoxFiltro.addItem("Gaussian")
         self.ComboBoxFiltro.addItem("Sobel")
         self.comboBoxKernel.addItem("5x5")
         self.comboBoxKernel.addItem("10x10")
         self.comboBoxKernel.addItem("20x20")
+
         self.Apply_Filter_Button.clicked.connect(self.Filter)
-        self.Apply_Brillo_Contraste.clicked.connect(self.Cambiar_Brilo_Contraste_Gamma) 
+        self.BrilloSlider.valueChanged.connect(self.Cambiar_Brillo) 
         self.BrilloSlider.setMinimum(-50)
         self.BrilloSlider.setMaximum(50)
         self.BrilloSlider.setSingleStep(2)
+        
 
+        self.ContrastSlider.valueChanged.connect(self.Cambiar_Contraste) 
         self.ContrastSlider.setMinimum(10)
         self.ContrastSlider.setMaximum(35)
         self.ContrastSlider.setSingleStep(5)
         
+        self.GammSlider.valueChanged.connect(self.Cambiar_Gamma) 
         self.GammSlider.setMinimum(5)
         self.GammSlider.setMaximum(30)
         self.GammSlider.setSingleStep(5)
 
         self.NegativoButton.clicked.connect(self.negative)
+
         self.DegragadoVButton.clicked.connect(self.VDegrade)
         self.DegragadoHButton.clicked.connect(self.HDegrade)
 
         self.dialog=Dialogo()
+
         self.Save_Button.clicked.connect(self.Abrir_Guardar)
         self.dialog.Ok_Save_Button.clicked.connect(self.Guardar_Imagen)
 
         self.UndoButton.clicked.connect(self.Undo)
+
         self.Errores=QtWidgets.QErrorMessage(self)
 
     def Undo(self):
@@ -246,6 +264,11 @@ class ejemplo(QtWidgets.QMainWindow):
         canvas = histogramer(self.img)
         scene.addWidget(canvas)
         self.Errores.close()
+
+        self.BrilloSlider.setValue(0)
+        self.ContrastSlider.setValue(10)
+        self.GammSlider.setValue(0)
+
         """
         pixmap01 = QtGui.QPixmap.fromImage(qImg)
         pixmap_image = QtGui.QPixmap(pixmap01)
@@ -257,7 +280,12 @@ class ejemplo(QtWidgets.QMainWindow):
 
     def Convert2Gray(self):
         self.img_anterior = self.img
-        self.img=cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        try:
+            self.img=cv2.cvtColor(self.img, cv2.COLOR_BGR2GRAY)
+        except:
+            self.img=self.img
+            self.Errores.showMessage("No se puede convertir imagen a escala de grises","Error")
+
         PIXEL_MAP=Cv_to_QPixmap(self.img)
         self.Processed_Image.setPixmap(PIXEL_MAP)
         self.Processed_Image.setScaledContents(True)
@@ -357,7 +385,11 @@ class ejemplo(QtWidgets.QMainWindow):
         if self.ComboBoxFiltro.currentText()=="Average":
             filtered_img=average_filter(self.img,N)
         elif self.ComboBoxFiltro.currentText()=="Sobel": 
-            filtered_img=sobel_filter(self.img)
+            try:
+                filtered_img=sobel_filter(self.img)
+            except:
+                self.Errores.showMessage("No se puede aplicar el filtro sobel","Error")
+                filtered_img=self.img
         elif self.ComboBoxFiltro.currentText()=="Gaussian":
             filtered_img=gauss_filter(self.img,N,4)
         
@@ -374,18 +406,52 @@ class ejemplo(QtWidgets.QMainWindow):
         canvas = histogramer(self.img)
         scene.addWidget(canvas)
 
-    def Cambiar_Brilo_Contraste_Gamma(self):
+    def Cambiar_Brillo(self):
+        self.img_anterior = self.img
+        a=1
+        b=self.BrilloSlider.value()
+        self.img=np.uint8(np.clip(a*self.img+b, 0.0, 255.0))
 
+        #Actualizar imagen
+        self.Processed_Image.setPixmap(Cv_to_QPixmap(self.img))
+        #Propiedades
+        self.Processed_Image.setScaledContents(True)
+        self.Processed_Image.setMinimumSize(1,1)
+        self.Processed_Image.show()
+
+        #Muestra el histograma
+        scene = QtWidgets.QGraphicsScene()
+        self.graphicsView.setScene (scene)
+        canvas = histogramer(self.img)
+        scene.addWidget(canvas)
+
+    def Cambiar_Contraste(self):
         self.img_anterior = self.img
         a=self.ContrastSlider.value()/10
-        b=self.BrilloSlider.value()
-        g=self.GammSlider.value()/10
-        print(f"Contraste: {a}" )
-        print(f"Brillo: {b}")
-        print(a*b)
-        
+        b=0
         self.img=np.uint8(np.clip(a*self.img+b, 0.0, 255.0))
+
+        #Actualizar imagen
+        self.Processed_Image.setPixmap(Cv_to_QPixmap(self.img))
+        #Propiedades
+        self.Processed_Image.setScaledContents(True)
+        self.Processed_Image.setMinimumSize(1,1)
+        self.Processed_Image.show()
+
+        #Muestra el histograma
+        scene = QtWidgets.QGraphicsScene()
+        self.graphicsView.setScene (scene)
+        canvas = histogramer(self.img)
+        scene.addWidget(canvas)
+
+
+    def Cambiar_Gamma(self):
+
+        self.img_anterior = self.img
+        g=self.GammSlider.value()/10
         self.img=gamma(self.img,g)
+
+        #Actualizar imagen
         self.Processed_Image.setPixmap(Cv_to_QPixmap(self.img))
         #Propiedades
         self.Processed_Image.setScaledContents(True)
