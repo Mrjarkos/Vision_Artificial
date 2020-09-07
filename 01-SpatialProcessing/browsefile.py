@@ -1,4 +1,4 @@
-import sys
+"""import sys
 from PyQt5.QtWidgets import QWidget, QInputDialog, QLineEdit, QFileDialog
 from PyQt5.QtGui import QIcon
 
@@ -41,3 +41,55 @@ class BrowseFile(QWidget):
         fileName, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","All Files (*);;Text Files (*.txt)", options=options)
         if fileName:
             print(fileName)
+"""
+import sys
+from PyQt5.QtWidgets import QWidget, QInputDialog, QLineEdit, QFileDialog
+from PyQt5.QtGui import QIcon
+
+class BrowseFile(QWidget):
+
+    fileName= ''
+    def __init__(self):
+        super().__init__()
+        self.title = 'File Browser'
+        self.left = 10
+        self.top = 10
+        self.width = 640
+        self.height = 480
+        self.initUI()
+        self.fileName = ''
+        self.saveName = ''
+    
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.left, self.top, self.width, self.height)
+        #self.openFileNameDialog()
+    
+    def openFileNameDialog(self):
+        #options = QFileDialog.Options()
+        #options |= QFileDialog.DontUseNativeDialog
+        fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","Images (*.png *.xpm *.jpg)")
+        if fileName:
+            self.fileName = fileName
+            return True
+        return False
+        
+    def returnFileName(self):
+        return self.fileName
+
+    def openFileNamesDialog(self):
+        options = QFileDialog.Options()
+        options |= QFileDialog.DontUseNativeDialog
+        files, _ = QFileDialog.getOpenFileNames(self,"QFileDialog.getOpenFileNames()", "","All Files (*);;Python Files (*.py)", options=options)
+        if files:
+            print(files)
+    
+    def saveFileDialog(self):
+        fileName, _ = QFileDialog.getSaveFileName(self,"QFileDialog.getSaveFileName()","","Images (*.png *.xpm *.jpg)")
+        if fileName:
+            self.saveName = fileName
+            return True
+        return False
+
+    def returnSaveName(self):
+        return self.saveName
