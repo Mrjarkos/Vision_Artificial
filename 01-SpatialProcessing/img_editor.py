@@ -31,7 +31,6 @@ def gauss_filter(img, N, s):
 
 def sobel_filter(image):
     if len(image.shape)==2:
-        
         gx = cv2.Sobel(image, cv2.CV_64F, 1, 0)
         gy = cv2.Sobel(image, cv2.CV_64F, 0, 1)
         
@@ -50,9 +49,7 @@ def gamma(image, gamma):
     # Aplica el factor gamma a cada uno de los pixeles de la imagen
     return cv2.LUT(image, table)
 
-
 def Cv_to_QPixmap(image):
-      
     if len(image.shape)==2:
         height, width = image.shape
         qImg = QtGui.QImage( image.data, width, height, width, QtGui.QImage.Format_Grayscale8)
@@ -63,25 +60,19 @@ def Cv_to_QPixmap(image):
         print(f"Bytes:{bytesPerLine}")
         qImg = QtGui.QImage( image.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888).rgbSwapped()
     PIX2 = QtGui.QPixmap(qImg)
- 
- 
     return PIX2
 
 def histogramer(image):
-
     figure = Figure(figsize=[4.7,3.8])
     axes = figure.gca()
 
     #si las dimensiones de la imagen son 2 es gris
     if len(image.shape)==2:
         #calcula el histograma convirtiendolo a arreglo
-        #cv2.calcHist(imagen,dimension a calcular(bgr),"None"=Toda la imagen,Tamaño del histograma,Rango del histograma)
         hist = cv2.calcHist([image],[0],None,[256],[0,256])
         #Para graficar en python
         axes.plot(hist)
     else:
-        #BGR
-        
         for i,col in enumerate(('b','g','r')):
             hist = cv2.calcHist([image],[i],None,[256],[0,256])
             #Para graficar en python
