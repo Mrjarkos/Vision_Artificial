@@ -7,19 +7,31 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
+<<<<<<< HEAD
     <height>650</height>
+=======
+    <height>600</height>
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
    </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>1200</width>
+<<<<<<< HEAD
     <height>650</height>
+=======
+    <height>600</height>
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
    </size>
   </property>
   <property name="maximumSize">
    <size>
     <width>1200</width>
+<<<<<<< HEAD
     <height>650</height>
+=======
+    <height>600</height>
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
    </size>
   </property>
   <property name="windowTitle">
@@ -169,7 +181,11 @@ color: rgb(255, 255, 255);</string>
       <x>210</x>
       <y>380</y>
       <width>351</width>
+<<<<<<< HEAD
       <height>171</height>
+=======
+      <height>131</height>
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
      </rect>
     </property>
     <property name="styleSheet">
@@ -194,9 +210,12 @@ color: rgb(0, 255, 255);</string>
      <property name="singleStep">
       <number>2</number>
      </property>
+<<<<<<< HEAD
      <property name="value">
       <number>50</number>
      </property>
+=======
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
      </property>
@@ -301,14 +320,22 @@ color: rgb(0, 255, 255);</string>
     <widget class="QLabel" name="label_8">
      <property name="geometry">
       <rect>
+<<<<<<< HEAD
        <x>100</x>
+=======
+       <x>110</x>
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
        <y>60</y>
        <width>16</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
+<<<<<<< HEAD
       <string>0.1</string>
+=======
+      <string>1</string>
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
      </property>
     </widget>
     <widget class="QLabel" name="label_9">
@@ -350,6 +377,7 @@ color: rgb(0, 255, 255);</string>
       <string>3</string>
      </property>
     </widget>
+<<<<<<< HEAD
     <widget class="QPushButton" name="Apply_Edition_Button">
      <property name="geometry">
       <rect>
@@ -367,6 +395,8 @@ background-color:  rgb(0, 255, 255);</string>
       <string>Apply</string>
      </property>
     </widget>
+=======
+>>>>>>> 43fcc3497b88d486765914f94eb3225d44d48d26
    </widget>
    <widget class="QGroupBox" name="groupBox_8">
     <property name="geometry">
