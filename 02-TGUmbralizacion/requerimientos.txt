@@ -1,0 +1,6 @@
+pip install cmake
+conda install -c conda-forge opencv #version 3.4.2
+pip install pupil-apriltags
+pip install apriltag
+
+
