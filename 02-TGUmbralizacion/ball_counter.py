@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from pupil_apriltags import Detector
 import sys
+import time
 
 WIDTH = np.uintc(360)
 HEIGHT = np.uintc(500)
@@ -71,6 +72,8 @@ if __name__ == '__main__':
                 tp = kalman[f[1]-10].predict()
                 center = (int(tp[0]), int(tp[1]))
                 cv2.circle(frame, center, 10, (255,0,255), 3)
+                pts1.append(list(center))
+                pts2.append(list(pts_ref[[i[1] for i in pts_ref].index(f[1])][0]))
 
         results = aprildet.detect(gray)    #Detección de los Tags
 
@@ -142,7 +145,7 @@ if __name__ == '__main__':
         cv2.imshow('Green Mask', green_mask)
         cv2.imshow('Red Mask', red_mask)
         cv2.imshow('Blue Mask', blue_mask)
-
+        time.sleep(0.1)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
