@@ -4,6 +4,8 @@ from pupil_apriltags import Detector
 import sys
 import time
 
+
+FPS = 10
 WIDTH = np.uintc(360)
 HEIGHT = np.uintc(500)
 
@@ -48,6 +50,7 @@ if __name__ == '__main__':
 
     found = [[False,10], [False,11], [False,12], [False,13], [False,14], [False,15]]
     found_counter = 0
+
     #Definiciones de parámetros para la visualización de los bordes de los Tags
     box_color = (0,255,255) 
     box_tickness = 3
@@ -63,6 +66,8 @@ if __name__ == '__main__':
     
     ######-----Filtro de Kalman con Tags----######
     while(True):
+        start_time = time.time() #Medir tiempo para garantizar que siempre vaya a 10FPS
+
         _, frame = cap.read() #Leer Frame de Video
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         pts1  = []
@@ -72,6 +77,7 @@ if __name__ == '__main__':
                 tp = kalman[f[1]-10].predict()
                 center = (int(tp[0]), int(tp[1]))
                 cv2.circle(frame, center, 10, (255,0,255), 3)
+                #Cuando no se encuentre el Tag, se coloca la estimación de Kalman
                 pts1.append(list(center))
                 pts2.append(list(pts_ref[[i[1] for i in pts_ref].index(f[1])][0]))
 
@@ -84,6 +90,7 @@ if __name__ == '__main__':
                     kalman_start(result.tag_id-10) # Reinicia el filtro kalman
                     found_counter = 0
                 found[f][0] = True
+                #Obtiene los Centros y las esquinas de los Tags y dibuja los bordes
                 center = (int(result.center[0]), int(result.center[1]))
                 corners = result.corners.astype(int)
                 cv2.circle(frame, tuple(corners[0]), box_corner_radio, box_color, -1)
@@ -92,8 +99,10 @@ if __name__ == '__main__':
                 cv2.line(frame, tuple(corners[2]), tuple(corners[3]), box_color, box_tickness) 
                 cv2.line(frame, tuple(corners[3]), tuple(corners[0]), box_color, box_tickness) 
                 cv2.putText(frame, str(result.tag_id), (center[0]-10, center[1]+10), id_font, id_scale, id_color, id_tickness, cv2.LINE_AA) 
+                #Lista de puntos para la transformación
                 pts1.append(list(center))
                 pts2.append(list(pts_ref[[i[1] for i in pts_ref].index(result.tag_id)][0]))
+                #Puntos para la corrección y estimación mediante Kalman
                 mp1 = np.array([[np.float32(center[0])],[np.float32(center[1])]])
                 kalman[result.tag_id-10].correct(mp1)
         else:
@@ -103,11 +112,11 @@ if __name__ == '__main__':
                     f[0] = False
     
         # Trasnformación Geométrica
-        M = cv2.getPerspectiveTransform(np.float32(pts1[0:4]),np.float32(pts2[0:4]))
-        dst = cv2.warpPerspective(frame,M,(WIDTH,HEIGHT), borderMode=cv2.BORDER_REPLICATE)
-        hsv = cv2.cvtColor(dst, cv2.COLOR_BGR2HSV)
-
+        M = cv2.getPerspectiveTransform(np.float32(pts1[0:4]),np.float32(pts2[0:4])) #Cálculo de matriz de transformación
+        dst = cv2.warpPerspective(frame,M,(WIDTH,HEIGHT), borderMode=cv2.BORDER_REPLICATE) #Ejecucion de la transformacion
+        
         #Umbralización
+        hsv = cv2.cvtColor(dst, cv2.COLOR_BGR2HSV)
         red_mask = cv2.inRange(hsv, hsv_to_cv(RED[0]), hsv_to_cv(RED[1]))
         green_mask = cv2.inRange(hsv, hsv_to_cv(GREEN[0]), hsv_to_cv(GREEN[1]))
         blue_mask = cv2.inRange(hsv, hsv_to_cv(BLUE[0]), hsv_to_cv(BLUE[1]))
@@ -118,16 +127,19 @@ if __name__ == '__main__':
             mask[i]= cv2.erode(mask[i], None, iterations=5)
             mask[i] = cv2.dilate(mask[i], None, iterations=5)
 
-            (_, cnts, _) = cv2.findContours(mask[i].copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            if len(cnts) > 0:
-                c = max(cnts, key=cv2.contourArea)
+            (_, cnts, _) = cv2.findContours(mask[i].copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE) #Encuentra los contornos, ver documentacion de OpenCV
+            #El CHAIN_APPROX_SIMPLE es para que solo retorne 4 puntos de los contornos
+            #El RETR_EXTERNAL es para que retorne los puntos externos
+
+            if len(cnts) > 0: #Si detecta más de 1 contorno
+                c = max(cnts, key=cv2.contourArea) #tome la figura con el mayor contorno (Cuando se tengan más bolas es necesario cambiarlo)
                 ((x, y), radius) = cv2.minEnclosingCircle(c)
                 center = (x, y)
                 _, _, h, w = cv2.boundingRect(c)
                 rat = h/w
                 if radius > 7 and rat>0.7 and rat<1.3:
-                    cv2.circle(dst, (int(x), int(y)), int(radius), colors[i], 2)
-                    cv2.circle(dst, (int(x), int(y)), 5, colors[i], -1)
+                    cv2.circle(dst, (int(x), int(y)), int(radius), colors[i], 2) #Grafica un circulo en el contorno del color de la pelota
+                    cv2.circle(dst, (int(x), int(y)), 5, colors[i], -1) #Grafica un circulo en el centro del color de la pelota
 
         #Conteo
         cv2.putText(dst, 'RED = '+ str(count_red), (10, 480), id_font, id_scale, colors[0], id_tickness, cv2.LINE_AA) 
@@ -137,15 +149,17 @@ if __name__ == '__main__':
         #Gráfica
         cv2.line(dst, pts_ref[2][0], pts_ref[3][0], (255,255,255), box_tickness, lineType=0) 
         frame = cv2.resize(frame, (int(frame.shape[1]/2), int(frame.shape[0]/2)), interpolation = cv2.INTER_AREA)
-        cv2.imshow('Tags', frame)
-
-        cv2.imshow('Main', dst)
+        cv2.imshow('Tags', frame) #Imagen original con los Tags marcados
+        cv2.imshow('Main', dst)   #Imagen final
         
+        #Máscaras de Colores con el procesamiento morfológico
+        #cv2.imshow('Green Mask', green_mask) 
+        #cv2.imshow('Red Mask', red_mask)
+        #cv2.imshow('Blue Mask', blue_mask)
+        elapsed_time = time.time() - start_time
         
-        cv2.imshow('Green Mask', green_mask)
-        cv2.imshow('Red Mask', red_mask)
-        cv2.imshow('Blue Mask', blue_mask)
-        time.sleep(0.1)
+        if not (elapsed_time>=0.1):
+            time.sleep(1/FPS-elapsed_time)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
